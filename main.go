@@ -1,48 +1,46 @@
 package main
 
 import (
-    "encoding/json"
-    "net/http"
-    "math/rand"
-    "time"
-    "os"
+	"encoding/json"
+	"math/rand"
+	"net/http"
+	"os"
+	"time"
 )
 
-type Resultado struct {
-    Chance int    `json:"chance"`
-    Texto  string `json:"texto"`
+type Futuro struct {
+	Mensagem string `json:"mensagem"`
 }
 
 func home(w http.ResponseWriter, r *http.Request) {
-    http.ServeFile(w, r, "index.html")
+	http.ServeFile(w, r, "index.html")
 }
 
-func analisar(w http.ResponseWriter, r *http.Request) {
-    rand.Seed(time.Now().UnixNano())
+func futuro(w http.ResponseWriter, r *http.Request) {
+	rand.Seed(time.Now().UnixNano())
 
-    chance := rand.Intn(100)
+	mensagens := []string{
+		"Em breve você vai tomar uma decisão que muda tudo.",
+		"Alguém inesperado vai cruzar seu caminho.",
+		"Uma oportunidade grande está chegando.",
+		"Você vai ganhar dinheiro de um jeito inesperado.",
+	}
 
-    texto := "Parece confiável 😎"
-    if chance > 70 {
-        texto = "⚠️ Alta chance de mentira 😂"
-    } else if chance > 40 {
-        texto = "🤨 Meio suspeito..."
-    }
+	msg := mensagens[rand.Intn(len(mensagens))]
 
-    json.NewEncoder(w).Encode(Resultado{
-        Chance: chance,
-        Texto:  texto,
-    })
+	json.NewEncoder(w).Encode(Futuro{
+		Mensagem: msg,
+	})
 }
 
 func main() {
-    http.HandleFunc("/", home)
-    http.HandleFunc("/analisar", analisar)
+	http.HandleFunc("/", home)
+	http.HandleFunc("/futuro", futuro)
 
-    port := os.Getenv("PORT")
-    if port == "" {
-        port = "8080"
-    }
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
 
-    http.ListenAndServe(":"+port, nil)
+	http.ListenAndServe(":"+port, nil)
 }
