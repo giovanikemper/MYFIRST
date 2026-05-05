@@ -2,9 +2,10 @@ package main
 
 import (
     "encoding/json"
-    "math/rand"
     "net/http"
+    "math/rand"
     "time"
+    "os"
 )
 
 type Resultado struct {
@@ -21,7 +22,7 @@ func analisar(w http.ResponseWriter, r *http.Request) {
 
     chance := rand.Intn(100)
 
-    texto := "Hmm... parece confiável 😎"
+    texto := "Parece confiável 😎"
     if chance > 70 {
         texto = "⚠️ Alta chance de mentira 😂"
     } else if chance > 40 {
@@ -38,5 +39,10 @@ func main() {
     http.HandleFunc("/", home)
     http.HandleFunc("/analisar", analisar)
 
-    http.ListenAndServe(":8080", nil)
+    port := os.Getenv("PORT")
+    if port == "" {
+        port = "8080"
+    }
+
+    http.ListenAndServe(":"+port, nil)
 }
