@@ -38,5 +38,5 @@ func main() {
     http.HandleFunc("/", home)
     http.HandleFunc("/analisar", analisar)
 
-    http.ListenAndServe(":3000", nil)
+    http.ListenAndServe(":8080", nil)
 }
