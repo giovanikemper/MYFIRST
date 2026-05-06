@@ -1,43 +1,201 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
-    <title>Detector de Mentira</title>
+    <meta charset="UTF-8">
+    <title>Pedra, Papel e Tesoura</title>
     <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
-            font-family: Arial;
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .container {
             text-align: center;
-            margin-top: 50px;
+            padding: 40px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            max-width: 500px;
+            width: 90%;
         }
-        button {
-            padding: 15px;
-            font-size: 18px;
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 8px;
         }
+
+        .placar {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin: 20px 0;
+            font-size: 1rem;
+            color: #aaa;
+        }
+
+        .placar span { font-size: 1.8rem; font-weight: bold; color: white; display: block; }
+
+        .escolhas {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin: 30px 0;
+        }
+
+        .btn-escolha {
+            background: rgba(255,255,255,0.08);
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 16px;
+            padding: 20px 24px;
+            font-size: 2.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: white;
+        }
+
+        .btn-escolha:hover {
+            background: rgba(255,255,255,0.18);
+            border-color: #e94560;
+            transform: scale(1.1);
+        }
+
+        .btn-escolha:active { transform: scale(0.95); }
+
+        .resultado-box {
+            background: rgba(255,255,255,0.07);
+            border-radius: 12px;
+            padding: 20px;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .versus {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            font-size: 1.4rem;
+            margin-bottom: 8px;
+        }
+
+        .vs { color: #aaa; font-size: 1rem; }
+
+        .resultado-texto {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .ganhou { color: #4ade80; }
+        .perdeu  { color: #f87171; }
+        .empate  { color: #fbbf24; }
+
+        .aguardando { color: #aaa; font-size: 1rem; }
+
+        .btn-reset {
+            margin-top: 20px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.3);
+            color: #aaa;
+            padding: 8px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .btn-reset:hover { color: white; border-color: white; }
     </style>
 </head>
 <body>
+<div class="container">
+    <h1>🪨📄✂️</h1>
+    <h2 style="margin-bottom:4px">Pedra, Papel e Tesoura</h2>
+    <p style="color:#aaa;margin-bottom:16px">Escolha sua jogada:</p>
 
-<h1>🧠 Detector de Mentira</h1>
+    <div class="placar">
+        <div>Você<span id="pts-jogador">0</span></div>
+        <div>CPU<span id="pts-cpu">0</span></div>
+    </div>
 
-<p>Fale algo e clique abaixo:</p>
+    <div class="escolhas">
+        <button class="btn-escolha" onclick="jogar('pedra')" title="Pedra">🪨</button>
+        <button class="btn-escolha" onclick="jogar('papel')" title="Papel">📄</button>
+        <button class="btn-escolha" onclick="jogar('tesoura')" title="Tesoura">✂️</button>
+    </div>
 
-<button onclick="analisar()">Analisar</button>
+    <div class="resultado-box">
+        <p class="aguardando" id="aguardando">Faça sua escolha acima...</p>
+        <div class="versus" id="versus" style="display:none">
+            <span id="emoji-jogador"></span>
+            <span class="vs">VS</span>
+            <span id="emoji-cpu"></span>
+        </div>
+        <p class="resultado-texto" id="resultado-texto"></p>
+    </div>
 
-<h2 id="resultado"></h2>
+    <button class="btn-reset" onclick="resetar()">Resetar placar</button>
+</div>
 
 <script>
-function analisar() {
-    document.getElementById("resultado").innerText = "Analisando...";
+    let ptsJogador = 0;
+    let ptsCpu = 0;
 
-    setTimeout(() => {
-        fetch('/analisar')
+    function jogar(escolha) {
+        document.getElementById('aguardando').style.display = 'none';
+        document.getElementById('versus').style.display = 'none';
+        document.getElementById('resultado-texto').textContent = '...';
+
+        fetch('/jogar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ escolha })
+        })
         .then(res => res.json())
         .then(data => {
-            document.getElementById("resultado").innerText =
-                data.texto + " (" + data.chance + "%)";
-        });
-    }, 1500);
-}
-</script>
+            document.getElementById('emoji-jogador').textContent = data.jogador;
+            document.getElementById('emoji-cpu').textContent = data.computador;
+            document.getElementById('versus').style.display = 'flex';
 
+            const el = document.getElementById('resultado-texto');
+            el.textContent = data.resultado;
+            el.className = 'resultado-texto';
+
+            if (data.resultado.includes('ganhou')) {
+                el.classList.add('ganhou');
+                ptsJogador++;
+            } else if (data.resultado.includes('perdeu')) {
+                el.classList.add('perdeu');
+                ptsCpu++;
+            } else {
+                el.classList.add('empate');
+            }
+
+            document.getElementById('pts-jogador').textContent = ptsJogador;
+            document.getElementById('pts-cpu').textContent = ptsCpu;
+        });
+    }
+
+    function resetar() {
+        ptsJogador = 0;
+        ptsCpu = 0;
+        document.getElementById('pts-jogador').textContent = 0;
+        document.getElementById('pts-cpu').textContent = 0;
+        document.getElementById('aguardando').style.display = 'block';
+        document.getElementById('versus').style.display = 'none';
+        document.getElementById('resultado-texto').textContent = '';
+    }
+</script>
 </body>
 </html>
