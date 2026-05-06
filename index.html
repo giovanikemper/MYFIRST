@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Detector de Mentira</title>
+    <style>
+        body {
+            font-family: Arial;
+            text-align: center;
+            margin-top: 50px;
+        }
+        button {
+            padding: 15px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>🧠 Detector de Mentira</h1>
+
+<p>Fale algo e clique abaixo:</p>
+
+<button onclick="analisar()">Analisar</button>
+
+<h2 id="resultado"></h2>
+
+<script>
+function analisar() {
+    document.getElementById("resultado").innerText = "Analisando...";
+
+    setTimeout(() => {
+        fetch('/analisar')
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById("resultado").innerText =
+                data.texto + " (" + data.chance + "%)";
+        });
+    }, 1500);
+}
+</script>
+
+</body>
+</html>

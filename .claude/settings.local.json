@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__354ae8ec-8fdf-4758-9dad-25abd087e768__outlook_calendar_search",
+      "Bash(Get-ChildItem -Path \"C:\\\\GOTESTES\" -Recurse -Force)",
+      "Bash(Select-Object FullName, PSIsContainer)",
+      "Bash(ConvertTo-Json -Depth 10)",
+      "Bash(git --version)",
+      "Bash(gh --version)",
+      "Bash(gh auth *)",
+      "Bash(git init *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git config *)"
+    ]
+  }
+}
