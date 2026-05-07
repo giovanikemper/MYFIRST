@@ -6,50 +6,21 @@ import (
 	"net/http"
 )
 
-type Jogada struct {
-	Escolha string `json:"escolha"`
+type Tabuleiro struct {
+	Cartas []string `json:"cartas"`
 }
 
-type Resultado struct {
-	Jogador    string `json:"jogador"`
-	Computador string `json:"computador"`
-	Resultado  string `json:"resultado"`
-}
+var emojis = []string{"🐶", "🐱", "🐸", "🦊", "🐼", "🐨", "🦁", "🐯"}
 
-var opcoes = []string{"pedra", "papel", "tesoura"}
-
-var emojis = map[string]string{
-	"pedra":   "🪨",
-	"papel":   "📄",
-	"tesoura": "✂️",
-}
-
-func jogar(w http.ResponseWriter, r *http.Request) {
+func novoJogo(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	var jogada Jogada
-	if err := json.NewDecoder(r.Body).Decode(&jogada); err != nil {
-		http.Error(w, "jogada inválida", http.StatusBadRequest)
-		return
-	}
-
-	computador := opcoes[rand.Intn(3)]
-	jogador := jogada.Escolha
-
-	resultado := "Empate! 🤝"
-	if (jogador == "pedra" && computador == "tesoura") ||
-		(jogador == "papel" && computador == "pedra") ||
-		(jogador == "tesoura" && computador == "papel") {
-		resultado = "Você ganhou! 🎉"
-	} else if jogador != computador {
-		resultado = "Você perdeu! 😢"
-	}
-
-	json.NewEncoder(w).Encode(Resultado{
-		Jogador:    emojis[jogador] + " " + jogador,
-		Computador: emojis[computador] + " " + computador,
-		Resultado:  resultado,
+	pares := append(emojis, emojis...)
+	rand.Shuffle(len(pares), func(i, j int) {
+		pares[i], pares[j] = pares[j], pares[i]
 	})
+
+	json.NewEncoder(w).Encode(Tabuleiro{Cartas: pares})
 }
 
 func home(w http.ResponseWriter, r *http.Request) {
@@ -58,6 +29,6 @@ func home(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	http.HandleFunc("/", home)
-	http.HandleFunc("/jogar", jogar)
+	http.HandleFunc("/novo-jogo", novoJogo)
 	http.ListenAndServe(":3000", nil)
 }
