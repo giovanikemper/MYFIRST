@@ -9,14 +9,14 @@ import (
 	"net/http"
 	"os/exec"
 	"runtime"
+
+	"github.com/jchv/go-webview2"
 )
 
 // A tela do jogo vai dentro do executável, então o .exe funciona sozinho.
 //
 //go:embed index.html
 var paginaInicial []byte
-
-const endereco = "localhost:3000"
 
 type Tabuleiro struct {
 	Cartas []string `json:"cartas"`
@@ -52,20 +52,35 @@ func abrirNavegador(url string) {
 }
 
 func main() {
-	url := "http://" + endereco
-
-	ouvinte, err := net.Listen("tcp", endereco)
+	// Porta 0: o sistema escolhe uma livre, então dá para abrir o jogo várias vezes.
+	ouvinte, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
-		// O jogo já está aberto em outra janela: só abre o navegador nele.
-		abrirNavegador(url)
+		fmt.Println("Não foi possível iniciar o jogo:", err)
 		return
 	}
+	url := "http://" + ouvinte.Addr().String()
 
 	http.HandleFunc("/", home)
 	http.HandleFunc("/novo-jogo", novoJogo)
+	go http.Serve(ouvinte, nil)
 
-	fmt.Println("Jogo da Memória rodando em", url)
-	fmt.Println("Feche esta janela para encerrar o jogo.")
-	abrirNavegador(url)
-	http.Serve(ouvinte, nil)
+	janela := webview2.NewWithOptions(webview2.WebViewOptions{
+		AutoFocus: true,
+		WindowOptions: webview2.WindowOptions{
+			Title:  "Jogo da Memória",
+			Width:  600,
+			Height: 780,
+			Center: true,
+		},
+	})
+	if janela == nil {
+		// Sem o WebView2 instalado: usa o navegador como plano B.
+		abrirNavegador(url)
+		select {}
+	}
+	defer janela.Destroy()
+
+	// Fechar a janela encerra o programa.
+	janela.Navigate(url)
+	janela.Run()
 }
